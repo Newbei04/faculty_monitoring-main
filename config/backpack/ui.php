@@ -64,7 +64,6 @@ return [
 
     // Menu logo. You can replace this with an <img> tag if you have a logo.
     'project_logo'   => 'PSU',
-
     // Show / hide breadcrumbs on admin panel pages.
     'breadcrumbs' => true,
 

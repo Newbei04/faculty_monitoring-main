@@ -1,7 +1,8 @@
 @if (backpack_auth()->check())
 <div class="{{ backpack_theme_config('classes.sidebar') }}" id="sidebar">
     <div class="sidebar-brand d-none d-md-flex">
-        <a class="navbar-brand fs-6 text-decoration-none text-uppercase" href="{{ url(backpack_theme_config('home_link')) }}" title="{{ backpack_theme_config('project_name') }}">
+        <a class="navbar-brand fs-6 text-decoration-none text-uppercase" href="{{ backpack_url('dashboard') }}" title="{{ backpack_theme_config('project_name') }}">
+            <img src="/image/logo.png" alt="PSU logo" class="me-2" style="height:24px; width:auto;">
             {!! backpack_theme_config('project_logo') !!}
         </a>
     </div>

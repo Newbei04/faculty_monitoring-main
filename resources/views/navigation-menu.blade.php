@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ backpack_auth()->check() ? backpack_url('dashboard') : route('dashboard') }}">
                         <img src="/image/logo.png" width="50px" height="50px" alt="">
                     </a>
                 </div>
