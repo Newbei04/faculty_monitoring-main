@@ -8,7 +8,7 @@ use App\Models\LeaveRequest;
 use App\Models\Room;
 use App\Models\Schedule;
 use App\Models\Subject;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
@@ -68,9 +68,25 @@ class PageController extends Controller
         $day = $now->toDateString();
         $time = $now->format('g:i A');
 
+        // Validate room_id exists
+        $validator = Validator::make(['room_id' => $roomId], [
+            'room_id' => 'required|exists:rooms,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid room ID. Please scan a valid QR code.',
+                'errors' => $validator->errors(),
+                'error_code' => 'INVALID_ROOM_ID'
+            ], 422);
+        }
+
         if (is_null($request->get('subject'))) {
             return response()->json([
-                'message'  => 'Please provide a valid subject'
+                'success' => false,
+                'message' => 'Please provide a valid subject',
+                'error_code' => 'MISSING_SUBJECT'
             ]);
         }
 
@@ -78,7 +94,9 @@ class PageController extends Controller
 
         if (!$subject) {
             return response()->json([
-                'message'  => 'Please provide a valid subject'
+                'success' => false,
+                'message' => 'Please provide a valid subject',
+                'error_code' => 'INVALID_SUBJECT'
             ]);
         }
 
@@ -87,13 +105,15 @@ class PageController extends Controller
             ->whereNull('end_booking_time')
             ->first();
 
-        $room = Room::find($roomId);
+        $room = Room::find($roomId);  // Room exists due to validation
 
         if ($existingBooking) {
             if ($existingBooking?->room_id !== (int) $roomId) {
                 return response()->json([
-                    'message' => 'You are currently booked to another room'
-                ]);
+                    'success' => false,
+                    'message' => 'You are currently booked to another room',
+                    'error_code' => 'ALREADY_BOOKED_ELSEWHERE'
+                ], 409);
             }
 
             if ($existingBooking?->room_id === (int) $roomId) {
@@ -104,6 +124,7 @@ class PageController extends Controller
                 $room->save();
 
                 return response()->json([
+                    'success' => true,
                     'message' => 'Time Out Successfully'
                 ]);
             }
@@ -116,8 +137,10 @@ class PageController extends Controller
 
         if ($isSomeOneAlreadyBooked) {
             return response()->json([
-                'message' => 'A Faculty member is still using the room'
-            ]);
+                'success' => false,
+                'message' => 'A Faculty member is still using the room',
+                'error_code' => 'ROOM_OCCUPIED'
+            ], 409);
         }
 
 
@@ -133,6 +156,7 @@ class PageController extends Controller
         $room->save();
 
         return response()->json([
+            'success' => true,
             'message' => 'Time In Successfully'
         ]);
     }

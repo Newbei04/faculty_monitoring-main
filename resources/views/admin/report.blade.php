@@ -54,8 +54,8 @@
                             <tr class="text-center">
                                 <td>{{ $roomStat->room_name }}</td>
                                 <td>{{ $roomStat->building }}</td>
-                                <td>{{ number_format($roomStat->total_seconds / 3600, 2) }}</td>
-                                <td>{{ number_format($roomStat->total_seconds / 60, 2) }}</td>
+                                <td>{{ number_format($roomStat->total_hours, 2) }}</td>
+                                <td>{{ $roomStat->total_minutes }}</td>
                                 <td>{{ $roomStat->total_seconds }}</td>
                                 <td>{{ $roomStat->total_bookings }}</td>
                             </tr>

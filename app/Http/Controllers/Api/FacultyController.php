@@ -23,7 +23,7 @@ class FacultyController extends Controller
     public function viewAttendance(Request $request)
     {
         $user = $request->user();
-        $attendances = Attendance::where('user_id', $user->id)->with('room')->get();
+        $attendances = Booking::where('user_id', $user->id)->with('room')->get();
         return response()->json($attendances);
     }
 

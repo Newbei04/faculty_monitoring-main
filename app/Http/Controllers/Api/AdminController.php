@@ -31,7 +31,7 @@ class AdminController extends Controller
 
     public function checkFaculties(Request $request)
     {
-        $faculties = Faculty::all();
+        $faculties = User::all();
         return response()->json($faculties);
     }
 
@@ -40,6 +40,18 @@ class AdminController extends Controller
         $subjects = Subject::all();
         return response()->json($subjects);
     }
+
+    public function checkAttendance(Request $request)
+    {
+        $attendances = Attendance::with(['user', 'room'])->get();
+
+        return response()->json([
+            'status' => 'success',
+            'total' => $attendances->count(),
+            'data' => $attendances
+        ]);
+    }
+
 
     public function generateReport(Request $request)
     {
