@@ -105,16 +105,28 @@ class ReportController extends Controller
         }
 
         // Fetch room statistics based on the selected reporting period
-        $roomStats = Booking::select('rooms.id as room_id', 'rooms.room_number as room_name', 'rooms.building_number as building',
-            DB::raw('SUM(TIMESTAMPDIFF(HOUR, STR_TO_DATE(start_booking_time, "%h:%i %p"), STR_TO_DATE(end_booking_time, "%h:%i %p"))) AS total_hours'),
-            DB::raw('SUM(TIMESTAMPDIFF(SECOND, STR_TO_DATE(start_booking_time, "%h:%i %p"), STR_TO_DATE(end_booking_time, "%h:%i %p"))) AS total_seconds'),
-            DB::raw('SUM(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(start_booking_time, "%h:%i %p"), STR_TO_DATE(end_booking_time, "%h:%i %p"))) AS total_minutes'),
-            DB::raw('COUNT(*) AS total_bookings'),
+        $roomStats = Booking::select(
+            'rooms.id as room_id',
+            'rooms.room_number as room_name',
+            'rooms.building_number as building',
+
+            DB::raw("
+            SUM(
+                TIMESTAMPDIFF(
+                    SECOND,
+                    STR_TO_DATE(CONCAT(booking_date, ' ', start_booking_time), '%Y-%m-%d %H:%i:%s'),
+                    STR_TO_DATE(CONCAT(booking_date, ' ', end_booking_time), '%Y-%m-%d %H:%i:%s')
+                )
+            ) AS total_seconds
+        "),
+
+            DB::raw('COUNT(*) AS total_bookings')
         )
             ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
             ->whereBetween('booking_date', [$startDate, $endDate])
-            ->groupBy('room_id')
+            ->groupBy('rooms.id', 'rooms.room_number', 'rooms.building_number')
             ->get();
+
 
         // Pass the room statistics and other data to the view
         return view('admin.report', [
