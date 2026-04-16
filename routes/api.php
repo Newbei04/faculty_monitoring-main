@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin/users', [AdminController::class, 'checkUser']);
     Route::get('/admin/faculties', [AdminController::class, 'checkFaculties']);
     Route::get('/admin/subjects', [AdminController::class, 'checkSubjects']);
+    Route::get('/admin/rooms', [AdminController::class, 'viewAvailableRooms']);
     Route::get('/admin/report', [AdminController::class, 'generateReport']);
 });
 

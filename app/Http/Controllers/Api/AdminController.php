@@ -11,7 +11,8 @@ use App\Models\Subject;
 use App\Models\Booking;
 use App\Models\Attendance;
 use App\Models\Room;
-use PDF; 
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminController extends Controller
 {
@@ -52,16 +53,59 @@ class AdminController extends Controller
         ]);
     }
 
+    public function viewAvailableRooms(Request $request)
+    {
+        $now = Carbon::now();
+
+        // Get currently occupied room IDs
+        $occupiedRoomIds = Booking::whereNull('end_booking_time')
+            ->whereDate('booking_date', $now->toDateString())
+            ->pluck('room_id')
+            ->toArray();
+
+        // Get all rooms
+        $rooms = Room::all();
+
+        // Add occupancy status for each room
+        $roomsWithStatus = $rooms->map(function ($room) use ($occupiedRoomIds) {
+            $roomData = $room->toArray();
+            $roomData['is_occupied'] = in_array($room->id, $occupiedRoomIds);
+            return $roomData;
+        })->values();
+
+        return response()->json($roomsWithStatus);
+    }
+
 
     public function generateReport(Request $request)
     {
-        $attendances = Attendance::with(['user', 'room'])->get();
+        $attendances = Booking::with(['user', 'room', 'subject'])->get();
+
         $data = [
             'attendances' => $attendances,
             'total' => $attendances->count(),
+            'generated_at' => now()->format('Y-m-d H:i:s'),
         ];
 
+        // Check if PDF is requested
+        if ($request->query('format') === 'pdf') {
+            $pdf = Pdf::loadView('reports.attendance', $data);
+
+            // Optional: Customize PDF settings
+            $pdf->setPaper('A4', 'landscape');
+            $pdf->setOptions([
+                'defaultFont' => 'sans-serif',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+            ]);
+
+            return $pdf->download('attendance_report_' . now()->format('Y-m-d') . '.pdf');
+
+            // Or stream it to browser:
+            // return $pdf->stream('attendance_report.pdf');
+        }
+
+        // Default: Return JSON
         return response()->json($data);
-        // For PDF: $pdf = PDF::loadView('reports.attendance', $data); return $pdf->download('report.pdf');
     }
 }

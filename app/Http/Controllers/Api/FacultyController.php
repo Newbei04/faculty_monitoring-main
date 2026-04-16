@@ -17,22 +17,34 @@ class FacultyController extends Controller
     public function viewAvailableRooms(Request $request)
     {
         $now = Carbon::now();
-        $dayNow = $now->format('l');
-        $timeNow = $now->format('H:i:s');
 
+        // Get currently occupied room IDs
         $occupiedRoomIds = Booking::whereNull('end_booking_time')
             ->whereDate('booking_date', $now->toDateString())
-            ->pluck('room_id');
+            ->pluck('room_id')
+            ->toArray();
 
-        $rooms = Room::whereNotIn('id', $occupiedRoomIds)->get();
+        // Get all rooms
+        $rooms = Room::all();
 
-        return response()->json($rooms);
+        // Add occupancy status for each room
+        $roomsWithStatus = $rooms->map(function ($room) use ($occupiedRoomIds) {
+            $roomData = $room->toArray();
+            $roomData['is_occupied'] = in_array($room->id, $occupiedRoomIds);
+            return $roomData;
+        })->values();
+
+        return response()->json($roomsWithStatus);
     }
 
     public function viewAttendance(Request $request)
     {
         $user = $request->user();
-        $attendances = Booking::where('user_id', $user->id)->with('room')->get();
+        $attendances = Booking::where('user_id', $user->id)
+            ->with(['room', 'subject']) 
+            ->orderBy('booking_date', 'desc') 
+            ->orderBy('start_booking_time', 'desc')
+            ->get();
         return response()->json($attendances);
     }
 
