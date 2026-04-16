@@ -42,15 +42,43 @@ class AdminController extends Controller
         return response()->json($subjects);
     }
 
-    public function checkAttendance(Request $request)
+    public function viewAttendance(Request $request)
     {
-        $attendances = Attendance::with(['user', 'room'])->get();
+        $attendances = Booking::with(['user', 'room', 'subject'])
+            ->orderBy('booking_date', 'desc')
+            ->orderBy('start_booking_time', 'desc')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'booking_date' => $booking->booking_date,
+                    'start_booking_time' => $booking->start_booking_time,
+                    'end_booking_time' => $booking->end_booking_time,
+                    'created_at' => $booking->created_at,
+                    'updated_at' => $booking->updated_at,
+                    'user' => [
+                        'id' => $booking->user->id ?? null,
+                        'first_name' => $booking->user->first_name ?? '',
+                        'last_name' => $booking->user->last_name ?? '',
+                        'middle_initial' => $booking->user->middle_initial ?? '',
+                        'name_extension' => $booking->user->name_extension ?? '',
+                        'email' => $booking->user->email ?? '',
+                        'role' => $booking->user->role ?? '',
+                    ],
+                    'room' => [
+                        'id' => $booking->room->id ?? null,
+                        'room_number' => $booking->room->room_number ?? '',
+                        'building_number' => $booking->room->building_number ?? '',
+                    ],
+                    'subject' => [
+                        'id' => $booking->subject->id ?? null,
+                        'name' => $booking->subject->name ?? 'No Subject',
+                        'code' => $booking->subject->code ?? '',
+                    ]
+                ];
+            });
 
-        return response()->json([
-            'status' => 'success',
-            'total' => $attendances->count(),
-            'data' => $attendances
-        ]);
+        return response()->json($attendances);
     }
 
     public function viewAvailableRooms(Request $request)

@@ -69,7 +69,7 @@ class FacultyController extends Controller
 
             if (!$schedule) {
                 return response()->json([
-                    'message' => 'No active schedule for this time/year'
+                    'message' => 'No active schedule for this time'
                 ], 400);
             }
 
