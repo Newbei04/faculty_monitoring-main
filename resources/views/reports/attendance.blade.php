@@ -30,7 +30,7 @@
                 <th>Date</th>
                 <th>Time In</th>
                 <th>Time Out</th>
-                <th>Status</th>
+                {{-- <th>Status</th> --}}
             </tr>
         </thead>
         <tbody>
@@ -54,14 +54,24 @@
                         N/A
                     @endif
                 </td>
-                <td>{{ \Carbon\Carbon::parse($attendance->created_at)->format('M d, Y') }}</td>
-                <td>{{ $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') : '—' }}</td>
-                <td>{{ $attendance->time_out ? \Carbon\Carbon::parse($attendance->time_out)->format('h:i A') : '—' }}</td>
+                <td>{{ \Carbon\Carbon::parse($attendance->booking_date)->format('M d, Y') }}</td>
                 <td>
+                    {{ $attendance->start_booking_time 
+                        ? \Carbon\Carbon::parse($attendance->start_booking_time)->format('h:i A') 
+                        : '—' }}
+                </td>
+
+                <td>
+                    {{ $attendance->end_booking_time 
+                        ? \Carbon\Carbon::parse($attendance->end_booking_time)->format('h:i A') 
+                        : '—' }}
+                </td>
+
+                {{-- <td>
                     <span class="badge {{ $attendance->status === 'present' ? 'present' : 'absent' }}">
                         {{ ucfirst($attendance->status ?? 'N/A') }}
                     </span>
-                </td>
+                </td> --}}
             </tr>
             @empty
             <tr>
