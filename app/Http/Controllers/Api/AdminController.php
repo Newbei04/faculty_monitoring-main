@@ -11,11 +11,10 @@ use App\Models\Subject;
 use App\Models\Booking;
 use App\Models\Attendance;
 use App\Models\Room;
-use PDF; // Assuming you have dompdf or similar for PDF generation
+use PDF; 
 
 class AdminController extends Controller
 {
-    // Removed middleware from here, now in routes
 
     public function checkSchedule(Request $request)
     {
@@ -31,7 +30,8 @@ class AdminController extends Controller
 
     public function checkFaculties(Request $request)
     {
-        $faculties = User::all();
+        $faculties = User::where('role', 'faculty')->get();
+
         return response()->json($faculties);
     }
 
@@ -55,14 +55,12 @@ class AdminController extends Controller
 
     public function generateReport(Request $request)
     {
-        // Simple report: attendance summary
         $attendances = Attendance::with(['user', 'room'])->get();
         $data = [
             'attendances' => $attendances,
             'total' => $attendances->count(),
         ];
 
-        // Generate PDF if needed, but for now return JSON
         return response()->json($data);
         // For PDF: $pdf = PDF::loadView('reports.attendance', $data); return $pdf->download('report.pdf');
     }

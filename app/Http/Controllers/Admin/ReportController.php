@@ -16,11 +16,9 @@ class ReportController extends Controller
 {
     public function export(Request $request, $type)
     {
-        // Initialize variables to store the start and end dates for the whereBetween clause
         $startDate = null;
         $endDate = null;
 
-        // Check the selected reporting period and set the start and end dates accordingly
         switch ($request->input('report_period')) {
             case 'daily':
                 $startDate = now()->startOfDay();
@@ -43,17 +41,21 @@ class ReportController extends Controller
                 $endDate = now()->endOfDay();
         }
 
-        // Fetch room statistics based on the selected reporting period
-        $roomStats = Booking::select('rooms.id as room_id', 'rooms.room_number as room_name', 'rooms.building_number as building',
-            DB::raw('SUM(TIMESTAMPDIFF(HOUR, STR_TO_DATE(start_booking_time, "%H:%i:%s"), STR_TO_DATE(end_booking_time, "%H:%i:%s"))) AS total_hours'),
-            DB::raw('SUM(TIMESTAMPDIFF(SECOND, STR_TO_DATE(start_booking_time, "%H:%i:%s"), STR_TO_DATE(end_booking_time, "%H:%i:%s"))) AS total_seconds'),
-            DB::raw('SUM(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(start_booking_time, "%H:%i:%s"), STR_TO_DATE(end_booking_time, "%H:%i:%s"))) AS total_minutes'),
-            DB::raw('COUNT(*) AS total_bookings'),
+        $roomStats = Booking::select(
+            'rooms.id as room_id',
+            'rooms.room_number as room_name',
+            'rooms.building_number as building',
+
+            DB::raw('SUM(TIMESTAMPDIFF(SECOND, start_booking_time, end_booking_time)) AS total_seconds'),
+            DB::raw('COUNT(*) AS total_bookings')
         )
             ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
             ->whereBetween('booking_date', [$startDate, $endDate])
-            ->groupBy('room_id')
+            ->whereNotNull('start_booking_time')
+            ->whereNotNull('end_booking_time')
+            ->groupBy('rooms.id', 'rooms.room_number', 'rooms.building_number')
             ->get();
+
 
         if ($type == 'pdf') {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.print', [
@@ -71,17 +73,14 @@ class ReportController extends Controller
             return $pdf->stream('report.pdf');
         }
 
-        // Default to print if type not recognized
         return redirect()->back();
     }
 
     public function index(Request $request)
     {
-        // Initialize variables to store the start and end dates for the whereBetween clause
         $startDate = null;
         $endDate = null;
 
-        // Check the selected reporting period and set the start and end dates accordingly
         switch ($request->input('report_period')) {
             case 'daily':
                 $startDate = now()->startOfDay();
@@ -104,7 +103,6 @@ class ReportController extends Controller
                 $endDate = now()->endOfDay();
         }
 
-        // Fetch room statistics based on the selected reporting period
         $roomStats = Booking::select(
             'rooms.id as room_id',
             'rooms.room_number as room_name',
@@ -121,7 +119,6 @@ class ReportController extends Controller
             ->get();
 
 
-        // Pass the room statistics and other data to the view
         return view('admin.report', [
             'title' => 'Report',
             'breadcrumbs' => [

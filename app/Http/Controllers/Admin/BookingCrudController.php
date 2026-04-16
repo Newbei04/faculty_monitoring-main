@@ -41,11 +41,11 @@ class BookingCrudController extends CrudController
     {
         CRUD::setFromDb(); // set columns from db columns.
 
-        if (request()->has('room_id')) {
-            $this->crud->addClause(function ($query) {
-                $query->where('room_id', request()->get('room_id'));
-            });
-        }
+        // if (request()->has('room_id')) {
+        //     $this->crud->addClause(function ($query) {
+        //         $query->where('room_id', request()->get('room_id'));
+        //     });
+        // }
 
         $this->crud->removeAllButtons();
 

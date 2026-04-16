@@ -75,6 +75,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+
                 @php
                     $rooms = \App\Models\Room::get();
                 @endphp
@@ -84,29 +85,49 @@
                         <tr class="text-center">
                             <th class="px-4 py-2">Room</th>
                             <th class="px-4 py-2">Occupant</th>
-                            <th class="px-4 py-2">Occupied</th>
+                            <th class="px-4 py-2">Status</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700">
                         @foreach ($rooms as $room)
+
                             @php
                                 $booking = \App\Models\Booking::where('room_id', $room->id)
                                     ->where('booking_date', now()->toDateString())
                                     ->whereNull('end_booking_time')
+                                    ->with('user') 
                                     ->first();
                             @endphp
 
                             <tr class="text-center">
-                                <td class="px-4 py-2">{{ $room->room_number }} - {{ $room->building_number }}</td>
-                                <td class="px-4 py-2"><span class="block">@if ($booking){{ $room->is_occupied ? $booking->user->first_name . ' ' . $booking->user->last_name : '' }}@endif</span></td>
+                                <!-- Room -->
                                 <td class="px-4 py-2">
-                                    @if ($room->is_occupied)
-                                        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Occupied</span
+                                    {{ $room->room_number }} - {{ $room->building_number }}
+                                </td>
+
+                                <!-- Occupant -->
+                                <td class="px-4 py-2">
+                                    @if ($booking)
+                                        {{ $booking->user->first_name ?? '' }} {{ $booking->user->last_name ?? '' }}
                                     @else
-                                        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-600 ring-1 ring-inset ring-green-600/10">Available</span
+                                        -
+                                    @endif
+                                </td>
+
+                                <!-- Status -->
+                                <td class="px-4 py-2">
+                                    @if ($booking)
+                                        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                                            Occupied
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-600 ring-1 ring-inset ring-green-600/10">
+                                            Available
+                                        </span>
                                     @endif
                                 </td>
                             </tr>
+
                         @endforeach
                     </tbody>
                 </table>
@@ -114,4 +135,5 @@
             </div>
         </div>
     </div>
+
 </x-app-layout>

@@ -16,7 +16,16 @@ class FacultyController extends Controller
 
     public function viewAvailableRooms(Request $request)
     {
-        $rooms = Room::where('is_occupied', false)->get();
+        $now = Carbon::now();
+        $dayNow = $now->format('l');
+        $timeNow = $now->format('H:i:s');
+
+        $occupiedRoomIds = Booking::whereNull('end_booking_time')
+            ->whereDate('booking_date', $now->toDateString())
+            ->pluck('room_id');
+
+        $rooms = Room::whereNotIn('id', $occupiedRoomIds)->get();
+
         return response()->json($rooms);
     }
 
@@ -29,45 +38,71 @@ class FacultyController extends Controller
 
     public function scanQr(Request $request)
     {
-        $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-        ]);
-
-        $user = $request->user();
-        $roomId = $request->room_id;
-        $now = Carbon::now();
-
-        // Check if user has an active booking for today
-        $booking = Booking::where('user_id', $user->id)
-            ->where('room_id', $roomId)
-            ->where('booking_date', $now->toDateString())
-            ->whereNull('end_booking_time')
-            ->first();
-
-        if (!$booking) {
-            return response()->json(['message' => 'No active booking for this room'], 400);
-        }
-
-        // Check if already checked in
-        $attendance = Attendance::where('user_id', $user->id)
-            ->where('room_id', $roomId)
-            ->whereDate('created_at', $now->toDateString())
-            ->first();
-
-        if (!$attendance) {
-            // Check in
-            Attendance::create([
-                'user_id' => $user->id,
-                'room_id' => $roomId,
-                'time_in' => $now,
+        try {
+            $request->validate([
+                'room_id' => 'required|exists:rooms,id',
             ]);
-            return response()->json(['message' => 'Checked in successfully']);
-        } elseif (!$attendance->time_out) {
-            // Check out
-            $attendance->update(['time_out' => $now]);
-            return response()->json(['message' => 'Checked out successfully']);
-        } else {
-            return response()->json(['message' => 'Already checked out'], 400);
+
+            $user = $request->user();
+            $roomId = $request->room_id;
+            $now = Carbon::now();
+
+            $dayNow = Carbon::now()->format('l');
+            $timeNow = Carbon::now()->format('H:i:s');
+
+            $schedule = Schedule::where('user_id', $user->id)
+                ->where('room_id', $roomId)
+                ->where('day', $dayNow)
+                ->first();
+
+            if (!$schedule) {
+                return response()->json([
+                    'message' => 'No active schedule for this time/year'
+                ], 400);
+            }
+
+            $booking = Booking::firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'room_id' => $roomId,
+                    'booking_date' => $now->toDateString(),
+                ],
+                [
+                    'subject_id' => $schedule->subject_id,
+                ]
+            );
+
+            if ($booking->start_booking_time && $booking->end_booking_time) {
+                return response()->json([
+                    'message' => 'Already completed'
+                ], 400);
+            }
+
+            if (!$booking->start_booking_time) {
+                $booking->update([
+                    'start_booking_time' => $timeNow
+                ]);
+
+                return response()->json([
+                    'message' => 'Checked in successfully',
+                    'status' => 'in'
+                ]);
+            }
+
+            if (!$booking->end_booking_time) {
+                $booking->update([
+                    'end_booking_time' => $timeNow
+                ]);
+
+                return response()->json([
+                    'message' => 'Checked out successfully',
+                    'status' => 'out'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
