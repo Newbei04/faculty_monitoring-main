@@ -76,7 +76,6 @@ class AdminController extends Controller
         return response()->json($roomsWithStatus);
     }
 
-
     public function generateReport(Request $request)
     {
         $attendances = Booking::with(['user', 'room', 'subject'])->get();
@@ -89,20 +88,23 @@ class AdminController extends Controller
 
         // Check if PDF is requested
         if ($request->query('format') === 'pdf') {
-            $pdf = Pdf::loadView('reports.attendance', $data);
+            try {
+                $pdf = Pdf::loadView('reports.attendance', $data);
 
-            // Optional: Customize PDF settings
-            $pdf->setPaper('A4', 'landscape');
-            $pdf->setOptions([
-                'defaultFont' => 'sans-serif',
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-            ]);
+                $pdf->setPaper('A4', 'landscape');
+                $pdf->setOptions([
+                    'defaultFont' => 'sans-serif',
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                ]);
 
-            return $pdf->download('attendance_report_' . now()->format('Y-m-d') . '.pdf');
-
-            // Or stream it to browser:
-            // return $pdf->stream('attendance_report.pdf');
+                return $pdf->download('attendance_report_' . now()->format('Y-m-d') . '.pdf');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'PDF generation failed',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
         }
 
         // Default: Return JSON
