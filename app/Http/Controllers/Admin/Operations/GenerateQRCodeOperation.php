@@ -97,9 +97,12 @@ trait GenerateQRCodeOperation
             File::makeDirectory('../storage/app/public/qrcodes', 0777, true);
         }
 
-        QrCode::color(7, 34, 209)
+        QrCode::color(0, 0, 0)
             ->style('square')
-            ->size(500)->generate($roomId, $path . $room->id . '.svg');
+            ->size(500)
+            ->errorCorrection('H')
+            ->margin(2)
+            ->generate($roomId, $path . $room->id . '.svg');
 
         $room->qr_code_path = '/qrcodes/' . $room->id . '.svg';
         $room->save();

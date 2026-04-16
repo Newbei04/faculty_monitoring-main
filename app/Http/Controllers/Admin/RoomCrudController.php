@@ -63,7 +63,7 @@ class RoomCrudController extends CrudController
             'type' => 'image',
             'width' => '100px',
             'height' => '100px',
-            'prefix' => URL::to('/') . '/storage/'
+            'prefix' => URL::to('/') . '/storage'
         ]);
     }
 
