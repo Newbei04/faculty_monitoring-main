@@ -65,6 +65,8 @@ class FacultyController extends Controller
             $schedule = Schedule::where('user_id', $user->id)
                 ->where('room_id', $roomId)
                 ->where('day', $dayNow)
+                ->where('start_time', '<=', $timeNow)
+                ->where('end_time', '>=', $timeNow)
                 ->first();
 
             if (!$schedule) {
@@ -77,6 +79,7 @@ class FacultyController extends Controller
                 [
                     'user_id' => $user->id,
                     'room_id' => $roomId,
+                    'subject_id' => $schedule->subject_id,
                     'booking_date' => $now->toDateString(),
                 ],
                 [
