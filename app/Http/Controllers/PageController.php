@@ -66,7 +66,8 @@ class PageController extends Controller
     {
         $now = now()->timezone('Asia/Singapore');
         $day = $now->toDateString();
-        $time = $now->format('g:i A');
+        // $time = $now->format('g:i A');
+        $time = $now->format('H:i:s');
 
         // Validate room_id exists
         $validator = Validator::make(['room_id' => $roomId], [

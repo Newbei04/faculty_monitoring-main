@@ -41,6 +41,14 @@
                         Close
                     </button>
                 </div>
+                <div v-if="message"
+                    class="mb-3 p-2 rounded text-sm"
+                    :class="{
+                        'bg-green-100 text-green-800': messageType === 'success',
+                        'bg-red-100 text-red-800': messageType === 'error'
+                    }">
+                    {{ message }}
+                </div>
             </div>
         </div>
     </div>
@@ -58,6 +66,7 @@ export default {
             result: null,
             showScanConfirmation: false,
             message: '',
+            messageType: '',
             showModal: false,
             subjects: [],
             selectedSubject: '',
@@ -124,14 +133,42 @@ export default {
 
         async bundy(roomId, subjectCode) {
             try {
-                await axios.get(`/${roomId}/bundy?subject=${subjectCode}`).then((response) => {
-                    window.alert(response.data.message);
+                const response = await axios.get(`/${roomId}/bundy?subject=${subjectCode}`);
+
+                // ✅ show success in modal
+                this.message = response.data.message;
+                this.messageType = 'success';
+
+                // optional: auto close after success
+                setTimeout(() => {
                     this.showModal = false;
-                });
+
+                    // reset state
+                    this.selectedSubject = '';
+                    this.result = null;
+                    this.showScanConfirmation = false;
+                    this.message = '';
+
+                    this.paused = false;
+                }, 1500);
+
             } catch (error) {
-                console.error('Error calling /{roomId}/bundy:', error);
+                console.error(error);
+
+                // ✅ show error in modal
+                if (error.response) {
+                    this.message = error.response.data.message;
+                } else {
+                    this.message = 'Something went wrong';
+                }
+
+                this.messageType = 'error';
+
+                // ❗ keep modal open so user can retry
+                this.paused = true;
             }
         }
+
     }
 }
 </script>

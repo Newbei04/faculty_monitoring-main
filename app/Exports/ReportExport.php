@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-
 class ReportExport implements FromCollection, WithHeadings
 {
     protected $data;
@@ -29,13 +28,18 @@ class ReportExport implements FromCollection, WithHeadings
     public function collection()
     {
         return $this->data->map(function ($item) {
+            $totalSeconds = (int) ($item->total_seconds ?? 0);
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds % 3600) / 60);
+            $seconds = $totalSeconds % 60;
+
             return [
                 $item->room_name,
                 $item->building,
-                $item->total_seconds,
-                $item->total_minutes,
-                number_format($item->total_minutes / 60, 2),
-                $item->total_bookings
+                $hours,
+                $minutes,
+                $seconds,
+                $item->total_bookings ?? 0,
             ];
         });
     }

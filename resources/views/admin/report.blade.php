@@ -39,27 +39,27 @@
                         <!-- Table for displaying report -->
                         <table class="table table-striped">
                             <thead>
-                            <tr class="text-center">
-                            <th>Room</th>
-                            <th>Building</th>
-                            <th>Total Number of Hours</th>
-                            <th>Total Number of Minutes</th>
-                            <th>Total Number of Seconds</th>
-                            <th>Total Number of Attendance</th>
-                        </tr>
+                                <tr class="text-center">
+                                    <th>Room</th>
+                                    <th>Building</th>
+                                    <th>Total Number of Hours</th>
+                                    <th>Total Number of Minutes</th>
+                                    <th>Total Number of Seconds</th>
+                                    <th>Total Number of Attendance</th>
+                                </tr>
 
                         </thead>
-                        <tbody>
-                        @foreach($roomStats as $roomStat)
-                            <tr class="text-center">
-                                <td>{{ $roomStat->room_name }}</td>
-                                <td>{{ $roomStat->building }}</td>
-                                <td>{{ number_format($roomStat->total_hours, 2) }}</td>
-                                <td>{{ $roomStat->total_minutes }}</td>
-                                <td>{{ $roomStat->total_seconds }}</td>
-                                <td>{{ $roomStat->total_bookings }}</td>
-                            </tr>
-                        @endforeach
+                            <tbody>
+                            @foreach($roomStats as $roomStat)
+                                <tr class="text-center">
+                                    <td>{{ $roomStat->room_name }}</td>
+                                    <td>{{ $roomStat->building }}</td>
+                                    <td>{{ number_format($roomStat->total_seconds / 3600, 2) }}</td>
+                                    <td>{{ floor($roomStat->total_seconds / 60) }}</td>
+                                    <td>{{ $roomStat->total_seconds }}</td>
+                                    <td>{{ $roomStat->total_bookings }}</td>
+                                </tr>
+                            @endforeach
                             </tbody>
                         </table>
                     </div>
