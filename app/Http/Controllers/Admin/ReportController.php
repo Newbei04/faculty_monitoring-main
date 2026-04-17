@@ -41,17 +41,43 @@ class ReportController extends Controller
                 $endDate = now()->endOfDay();
         }
 
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+
+            $totalSeconds = DB::raw('
+            SUM(
+                TIMESTAMPDIFF(
+                    SECOND,
+                    STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
+                    STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
+                )
+            ) AS total_seconds
+        ');
+            } else {
+
+                $totalSeconds = DB::raw('
+            SUM(
+                EXTRACT(EPOCH FROM (
+                    (booking_date + start_booking_time::time) -
+                    (booking_date + end_booking_time::time)
+                ))
+            ) AS total_seconds
+        ');
+        }
+
         $roomStats = Booking::select(
             'rooms.id as room_id',
             'rooms.room_number as room_name',
             'rooms.building_number as building',
-            DB::raw('SUM(TIMESTAMPDIFF(SECOND, STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"), STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s"))) AS total_seconds'),
+            $totalSeconds,
             DB::raw('COUNT(*) AS total_bookings')
         )
             ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
             ->whereBetween('booking_date', [$startDate, $endDate])
             ->groupBy('rooms.id', 'rooms.room_number', 'rooms.building_number')
             ->get();
+
 
 
         if ($type == 'pdf') {
@@ -100,11 +126,35 @@ class ReportController extends Controller
                 $endDate = now()->endOfDay();
         }
 
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+            $totalSeconds = DB::raw('
+            SUM(
+                TIMESTAMPDIFF(
+                    SECOND,
+                    STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
+                    STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
+                )
+            ) AS total_seconds
+        ');
+            } else {
+
+                $totalSeconds = DB::raw('
+            SUM(
+                EXTRACT(EPOCH FROM (
+                    (booking_date + start_booking_time::time) -
+                    (booking_date + end_booking_time::time)
+                ))
+            ) AS total_seconds
+        ');
+        }
+
         $roomStats = Booking::select(
             'rooms.id as room_id',
             'rooms.room_number as room_name',
             'rooms.building_number as building',
-            DB::raw('SUM(TIMESTAMPDIFF(SECOND, STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"), STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s"))) AS total_seconds'),
+            $totalSeconds,
             DB::raw('COUNT(*) AS total_bookings')
         )
             ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
