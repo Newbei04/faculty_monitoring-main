@@ -14,16 +14,19 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
+# Copy start.sh to root before copying everything else
+COPY start.sh /start.sh
+
 COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# 🔥 IMPORTANT: install Node + build Vite
+# Install Node dependencies and build Vite
 RUN npm install
 RUN npm run build
 
-# Permissions
+# Make start.sh executable
 RUN chmod +x /start.sh
 
 EXPOSE 10000

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Running migrations..."
-php artisan migrate
+php artisan migrate --force
 
 echo "Clearing caches..."
 php artisan config:cache
