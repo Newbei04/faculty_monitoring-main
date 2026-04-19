@@ -141,10 +141,10 @@ class DataSeeder extends Seeder
         ];
 
         foreach ($subjects as $subject) {
-            Subject::create([
-                'name' => $subject[0],
-                'code' => $subject[1],
-            ]);
+            Subject::updateOrCreate(
+                ['code' => $subject[1]],
+                ['name' => $subject[0]]
+            );
         }
 
         $rooms = [
@@ -176,10 +176,10 @@ class DataSeeder extends Seeder
         ];
 
         foreach ($rooms as $room) {
-            Room::create([
-                'room_number' => $room[0],
-                'building_number' => $room[1],
-            ]);
+            Room::updateOrCreate(
+                ['room_number' => $room[0]],
+                ['building_number' => $room[1]]
+            );
         }
     }
 }
