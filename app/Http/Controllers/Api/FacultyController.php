@@ -75,18 +75,26 @@ class FacultyController extends Controller
                 ], 400);
             }
 
-            $booking = Booking::firstOrCreate(
+            Booking::firstOrCreate(
                 [
-                    'user_id' => $user->id,
-                    'room_id' => $roomId,
-                    'subject_id' => $schedule->subject_id,
+                    'user_id'      => $user->id,
+                    'room_id'      => $roomId,
+                    'subject_id'   => $schedule->subject_id,
                     'booking_date' => $now->toDateString(),
-                    'end_booking_time' => null,
                 ],
                 [
-                    'subject_id' => $schedule->subject_id,
+                    'start_booking_time' => null,
+                    'end_booking_time'   => null,
                 ]
             );
+
+            // Re-query with whereNull — works on both MySQL and PostgreSQL
+            $booking = Booking::where('user_id', $user->id)
+                ->where('room_id', $roomId)
+                ->where('subject_id', $schedule->subject_id)
+                ->where('booking_date', $now->toDateString())
+                ->whereNull('end_booking_time')
+                ->first();
 
             if ($booking->start_booking_time && $booking->end_booking_time) {
                 return response()->json([
@@ -101,7 +109,7 @@ class FacultyController extends Controller
 
                 return response()->json([
                     'message' => 'Checked in successfully',
-                    'status' => 'in'
+                    'status'  => 'in'
                 ]);
             }
 
@@ -112,7 +120,7 @@ class FacultyController extends Controller
 
                 return response()->json([
                     'message' => 'Checked out successfully',
-                    'status' => 'out'
+                    'status'  => 'out'
                 ]);
             }
         } catch (\Exception $e) {
