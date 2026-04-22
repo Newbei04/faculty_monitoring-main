@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# echo "Running migrations..."
-# php artisan migrate:fresh --force
+echo "Running migrations..."
+php artisan migrate:fresh --force
 
-echo "Running safe migrations..."
-php artisan migrate --force
+# echo "Running safe migrations..."
+# php artisan migrate --force
 
 echo "Running seeder..."
 php artisan db:seed --force
