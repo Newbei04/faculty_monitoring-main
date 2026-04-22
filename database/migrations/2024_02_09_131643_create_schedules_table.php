@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('subject_id');
-            $table->unsignedBigInteger('room_id');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->unsignedBigInteger('room_id')->nullable();
             $table->string('year');
             $table->string('semester');
             $table->string('day');
