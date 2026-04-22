@@ -81,6 +81,7 @@ class FacultyController extends Controller
                     'room_id' => $roomId,
                     'subject_id' => $schedule->subject_id,
                     'booking_date' => $now->toDateString(),
+                    'end_booking_time' => null,
                 ],
                 [
                     'subject_id' => $schedule->subject_id,
