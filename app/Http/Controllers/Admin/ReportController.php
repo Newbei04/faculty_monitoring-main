@@ -7,11 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Class ReportController
- * @package App\Http\Controllers\Admin
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
- */
 class ReportController extends Controller
 {
     public function export(Request $request, $type)
@@ -44,26 +39,24 @@ class ReportController extends Controller
         $driver = DB::getDriverName();
 
         if ($driver === 'mysql') {
-
             $totalSeconds = DB::raw('
-            SUM(
-                TIMESTAMPDIFF(
-                    SECOND,
-                    STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
-                    STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
-                )
-            ) AS total_seconds
-        ');
-            } else {
-
-                $totalSeconds = DB::raw('
-            SUM(
-                EXTRACT(EPOCH FROM (
-                    (booking_date + start_booking_time::time) -
-                    (booking_date + end_booking_time::time)
-                ))
-            ) AS total_seconds
-        ');
+                SUM(
+                    TIMESTAMPDIFF(
+                        SECOND,
+                        STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
+                        STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
+                    )
+                ) AS total_seconds
+            ');
+        } else {
+            $totalSeconds = DB::raw('
+                SUM(
+                    EXTRACT(EPOCH FROM (
+                        (booking_date + end_booking_time::time) -
+                        (booking_date + start_booking_time::time)
+                    ))
+                ) AS total_seconds
+            ');
         }
 
         $roomStats = Booking::select(
@@ -77,8 +70,6 @@ class ReportController extends Controller
             ->whereBetween('booking_date', [$startDate, $endDate])
             ->groupBy('rooms.id', 'rooms.room_number', 'rooms.building_number')
             ->get();
-
-
 
         if ($type == 'pdf') {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.print', [
@@ -130,24 +121,23 @@ class ReportController extends Controller
 
         if ($driver === 'mysql') {
             $totalSeconds = DB::raw('
-            SUM(
-                TIMESTAMPDIFF(
-                    SECOND,
-                    STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
-                    STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
-                )
-            ) AS total_seconds
-        ');
-            } else {
-
-                $totalSeconds = DB::raw('
-            SUM(
-                EXTRACT(EPOCH FROM (
-                    (booking_date + start_booking_time::time) -
-                    (booking_date + end_booking_time::time)
-                ))
-            ) AS total_seconds
-        ');
+                SUM(
+                    TIMESTAMPDIFF(
+                        SECOND,
+                        STR_TO_DATE(CONCAT(booking_date, " ", start_booking_time), "%Y-%m-%d %H:%i:%s"),
+                        STR_TO_DATE(CONCAT(booking_date, " ", end_booking_time), "%Y-%m-%d %H:%i:%s")
+                    )
+                ) AS total_seconds
+            ');
+        } else {
+            $totalSeconds = DB::raw('
+                SUM(
+                    EXTRACT(EPOCH FROM (
+                        (booking_date + end_booking_time::time) -
+                        (booking_date + start_booking_time::time)
+                    ))
+                ) AS total_seconds
+            ');
         }
 
         $roomStats = Booking::select(
@@ -162,7 +152,6 @@ class ReportController extends Controller
             ->groupBy('rooms.id', 'rooms.room_number', 'rooms.building_number')
             ->get();
 
-
         return view('admin.report', [
             'title' => 'Report',
             'breadcrumbs' => [
@@ -174,5 +163,4 @@ class ReportController extends Controller
             'roomStats' => $roomStats
         ]);
     }
-
 }

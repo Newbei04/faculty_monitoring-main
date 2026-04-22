@@ -34,12 +34,12 @@ class ReportExport implements FromCollection, WithHeadings
             $seconds = $totalSeconds % 60;
 
             return [
-                $item->room_name,
-                $item->building,
-                $hours,
-                $minutes,
-                $seconds,
-                $item->total_bookings ?? 0,
+                $item->room_name,      // Room
+                $item->building,       // Building
+                $hours,                // Total Hours
+                $minutes,              // Total Minutes
+                $seconds,              // Total Seconds
+                $item->total_bookings ?? 0, // Total Bookings
             ];
         });
     }
