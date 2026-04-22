@@ -75,26 +75,23 @@ class FacultyController extends Controller
                 ], 400);
             }
 
-            Booking::firstOrCreate(
-                [
-                    'user_id'      => $user->id,
-                    'room_id'      => $roomId,
-                    'subject_id'   => $schedule->subject_id,
-                    'booking_date' => $now->toDateString(),
-                ],
-                [
-                    'start_booking_time' => null,
-                    'end_booking_time'   => null,
-                ]
-            );
-
-            // Re-query with whereNull — works on both MySQL and PostgreSQL
+            // Find existing open booking — whereNull works on both MySQL and PostgreSQL
             $booking = Booking::where('user_id', $user->id)
                 ->where('room_id', $roomId)
                 ->where('subject_id', $schedule->subject_id)
                 ->where('booking_date', $now->toDateString())
                 ->whereNull('end_booking_time')
                 ->first();
+
+            // Only create if no open booking exists
+            if (!$booking) {
+                $booking = Booking::create([
+                    'user_id'      => $user->id,
+                    'room_id'      => $roomId,
+                    'subject_id'   => $schedule->subject_id,
+                    'booking_date' => $now->toDateString(),
+                ]);
+            }
 
             if ($booking->start_booking_time && $booking->end_booking_time) {
                 return response()->json([

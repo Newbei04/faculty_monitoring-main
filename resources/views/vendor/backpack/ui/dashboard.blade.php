@@ -89,37 +89,39 @@
             @foreach($rooms as $room)
                 @php
                     $booking = \App\Models\Booking::where('room_id', $room->id)
-                                    ->where('booking_date', now()->toDateString())
-                                    ->whereNull('end_booking_time')
-                                    ->first();
+                        ->where('booking_date', now()->toDateString())
+                        ->whereNotNull('start_booking_time')
+                        ->whereNull('end_booking_time')
+                        ->with('user')
+                        ->first();
+
+                    $isOccupied = $booking ? true : false;
                 @endphp
 
-                <div class="col-lg-3 col-md-3">
-                    <div class="scene" @if (!$room->is_occupied) onclick="redirect({{ $room->id }})" @endif>
-                        <div class="cube">
-                            <div class="cube__face cube__face--front @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif">
-                                <span class="d-block mt-3">Room {{ $room->room_number }}</span>
-                                <span class="d-block">@if ($booking){{ $room->is_occupied ? $booking->user->full_name : '' }}@endif</span>
-                                <span class="d-block mt-3">
-                                    @if ($room->is_occupied)
-                                        Occupied
-                                    @else
-                                        Available
-                                    @endif
-                                </span>
-                                @if($booking)
-                                    <div class="custom-tooltip">
-                                        <span class="d-block">Occupant: {{ $booking->user->full_name }}</span>
-                                        <span class="d-block">Time Occupied: {{ $booking->start_booking_time }}</span>
-                                    </div>
+                <div class="scene" @if (!$isOccupied) onclick="redirect({{ $room->id }})" @endif>
+                    <div class="cube">
+                        <div class="cube__face cube__face--front @if($isOccupied) cube__face--occupied @else cube__face--available @endif">
+                            <span class="d-block mt-3">Room {{ $room->room_number }}</span>
+                            <span class="d-block">@if ($booking){{ $isOccupied ? $booking->user->full_name : '' }}@endif</span>
+                            <span class="d-block mt-3">
+                                @if ($isOccupied)
+                                    Occupied
+                                @else
+                                    Available
                                 @endif
-                            </div>
-                            <div class="cube__face cube__face--back @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif"></div>
-                            <div class="cube__face cube__face--right @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif"></div>
-                            <div class="cube__face cube__face--left @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif"></div>
-                            <div class="cube__face cube__face--top @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif"></div>
-                            <div class="cube__face cube__face--bottom @if($room->is_occupied) cube__face--occupied @else cube__face--available @endif"></div>
+                            </span>
+                            @if($booking)
+                                <div class="custom-tooltip">
+                                    <span class="d-block">Occupant: {{ $booking->user->full_name }}</span>
+                                    <span class="d-block">Time Occupied: {{ $booking->start_booking_time }}</span>
+                                </div>
+                            @endif
                         </div>
+                        <div class="cube__face cube__face--back @if($isOccupied) cube__face--occupied @else cube__face--available @endif"></div>
+                        <div class="cube__face cube__face--right @if($isOccupied) cube__face--occupied @else cube__face--available @endif"></div>
+                        <div class="cube__face cube__face--left @if($isOccupied) cube__face--occupied @else cube__face--available @endif"></div>
+                        <div class="cube__face cube__face--top @if($isOccupied) cube__face--occupied @else cube__face--available @endif"></div>
+                        <div class="cube__face cube__face--bottom @if($isOccupied) cube__face--occupied @else cube__face--available @endif"></div>
                     </div>
                 </div>
             @endforeach
